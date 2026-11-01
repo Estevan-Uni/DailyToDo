@@ -21,3 +21,5 @@
 - [HANDOFF.md](HANDOFF.md)：当前交付入口、十项人工验收与反馈格式。
 
 - [ENGINEERING_CHECK.md](ENGINEERING_CHECK.md)：V25 DailyToDo命名、旧数据兼容与上传前检查。
+
+- [DESKTOP_CARD.md](DESKTOP_CARD.md)：V26桌面固定策略、独立编辑窗口与实际验证边界。

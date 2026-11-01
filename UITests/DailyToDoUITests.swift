@@ -42,9 +42,11 @@ final class DailyToDoUITests: XCTestCase {
     }
     @MainActor private func card(_ app: XCUIApplication) -> XCUIElement {
         let card = app.descendants(matching: .any).matching(identifier: "desktop-card").firstMatch
-        // Bring the ordinary panel in front of the main window before input.
-        if card.exists { app.windows["main"].buttons["desktop-card-toggle"].click() }
-        app.windows["main"].buttons["desktop-card-toggle"].click()
+        // Desktop cards intentionally stay behind ordinary app windows. Reach
+        // them by closing the clean calendar, as a desktop user would.
+        let main = app.windows["main"]
+        if !card.exists { main.buttons["desktop-card-toggle"].click() }
+        if main.exists { main.buttons[XCUIIdentifierCloseWindow].click(); absent(main) }
         XCTAssertTrue(card.waitForExistence(timeout: 8))
         return card
     }
@@ -124,12 +126,15 @@ final class DailyToDoUITests: XCTestCase {
         let editor = prepareTask("卡片完成与撤销", app: app); saveAndClose(editor)
         let card = card(app), complete = card.buttons["完成：卡片完成与撤销"]
         XCTAssertTrue(complete.waitForExistence(timeout: 8)); complete.click(); absent(complete)
+        card.buttons["card-open-main"].click()
         XCTAssertTrue(app.windows["main"].buttons["取消完成：卡片完成与撤销"].waitForExistence(timeout: 8))
         let history = event(app.windows["main"], prefix: "calendar-event-", title: "卡片完成与撤销")
         XCTAssertTrue(history.label.contains("已完成"))
-        if card.buttons["card-undo"].exists { card.buttons["card-undo"].click() }
-        else { app.typeKey("z", modifierFlags: [.command, .option]) }
+        let visibleCard = self.card(app)
+        XCTAssertTrue(visibleCard.buttons["card-undo"].waitForExistence(timeout: 8))
+        visibleCard.buttons["card-undo"].click()
         XCTAssertTrue(complete.waitForExistence(timeout: 8))
+        visibleCard.buttons["card-open-main"].click()
         XCTAssertTrue(app.windows["main"].buttons["完成：卡片完成与撤销"].waitForExistence(timeout: 8))
         attach(app, "Card undo and calendar history")
     }
@@ -151,6 +156,7 @@ final class DailyToDoUITests: XCTestCase {
         replace(element(cardEditor, "editor-title"), with: "更期待的日子", app: app)
         replace(element(cardEditor, "editor-date"), with: "2099-02-16", app: app)
         element(cardEditor, "editor-save").click(); absent(cardEditor)
+        card.buttons["card-open-main"].click()
         let changed = event(app.windows["main"], prefix: "countdown-event-", title: "更期待的日子")
         XCTAssertTrue(changed.waitForExistence(timeout: 8)); XCTAssertTrue(changed.label.contains("2099-02-16"))
         attach(app, "Countdown edit shared across windows")
@@ -181,6 +187,7 @@ final class DailyToDoUITests: XCTestCase {
         card.buttons["card-next-day"].click()
         XCTAssertTrue(complete.waitForExistence(timeout: 8))
         card.buttons["card-previous-day"].click(); absent(complete)
+        card.buttons["card-open-main"].click()
         XCTAssertTrue(app.windows["main"].buttons["取消完成：每日固定安排"].waitForExistence(timeout: 8))
         attach(app, "Independent daily occurrences")
     }
@@ -207,6 +214,23 @@ final class DailyToDoUITests: XCTestCase {
         absent(editor.buttons["editor-save-continue"])
         XCTAssertTrue(event(app.windows["main"], prefix: "calendar-event-", title: "类型键盘选择").waitForExistence(timeout: 8))
         attach(app, "Category keyboard choice and explicit save")
+    }
+    @MainActor func testDesktopCardSurvivesHidingAppAndStillEdits() {
+        let app = launch(); defer { app.terminate() }
+        let card = card(app)
+        app.activate()
+        app.typeKey("h", modifierFlags: .command)
+        XCTAssertTrue(card.waitForExistence(timeout: 8))
+        XCTAssertTrue(card.buttons["card-add-countdown"].isHittable)
+        card.buttons["card-add-countdown"].click()
+        let editor = element(app, "card-editor")
+        replace(element(editor, "editor-title"), with: "桌面保持可交互", app: app)
+        replace(element(editor, "editor-date"), with: "2099-03-18", app: app)
+        element(editor, "editor-save").click(); absent(editor)
+        XCTAssertTrue(event(card, prefix: "card-countdown-", title: "桌面保持可交互").waitForExistence(timeout: 8))
+        card.buttons["card-open-main"].click()
+        XCTAssertTrue(app.windows["main"].waitForExistence(timeout: 8))
+        attach(app, "Desktop card survives application hide")
     }
     @MainActor func testMinimumCardPreservesTwoPanesAndFixedAddControls() {
         for dark in [false, true] {

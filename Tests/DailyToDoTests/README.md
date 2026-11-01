@@ -1,4 +1,4 @@
-# TodoDesktopTests
+# DailyToDoTests
 
 使用Swift Testing直接导入实际AppModel/EditorSession，配合独立临时SQLite、注入时钟/存储位置/离开选择和内存系统客户端。不会启动App主入口、弹NSAlert、请求通知权限或注册登录项；临时库关闭后清理，不读写正常用户库。
 

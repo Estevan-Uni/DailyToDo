@@ -7,7 +7,7 @@ struct WelcomeView: View {
         VStack(alignment: .leading, spacing: 20) {
             Label("日程与倒计时", systemImage: "calendar").font(.title2.weight(.semibold))
             Text("点击日历日期下的空白新建，点击事项编辑。完成后在 App 原位划线，卡片只显示未完成事项。")
-            Text("未完成的单次待办会自动顺延；每日、每周固定安排保留各次日期。")
+            Text("卡片固定在桌面，点击桌面不会收起；关闭主窗口后仍保留，退出 App 后关闭。未完成的单次待办会自动顺延。")
                 .foregroundStyle(.secondary)
             Toggle("显示桌面卡片", isOn: Binding(get: { model.cardVisible }, set: { value in
                 if value { model.cardController?.show(activate: false) } else { model.cardController?.hide() }

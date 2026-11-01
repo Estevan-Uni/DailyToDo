@@ -12,7 +12,7 @@ struct SettingsView: View {
                 HStack { Button("显示卡片") { model.cardController?.show() }; Button("隐藏卡片") { model.cardController?.hide() } }
                 Button("恢复卡片位置") { model.cardController?.resetPosition() }.disabled(model.cardController == nil)
                 if let issue = model.cardPositionIssue { Text(issue).font(.caption).foregroundStyle(.secondary) }
-                Text("默认使用普通窗口层级。卡片可从标题区拖动、从边缘调整大小。").font(.caption).foregroundStyle(.secondary)
+                Text("默认固定在桌面，点击桌面或切换 App 时保留，其他窗口可以覆盖。开启置顶后显示在其他窗口上方。卡片可拖动和调整大小；退出 App 后关闭。").font(.caption).foregroundStyle(.secondary)
             }
             Section("系统") {
                 Toggle("允许事项提醒", isOn: Binding(get: { model.services.notificationsEnabled }, set: { value in Task { await model.services.setNotifications(value, repository: model.repository) } }))

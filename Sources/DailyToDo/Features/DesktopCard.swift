@@ -29,12 +29,16 @@ import TodoInteraction
 
     init(model: AppModel) {
         self.model = model; super.init()
-        panel = CardPanel(contentRect: NSRect(x: 100, y: 180, width: 680, height: 400), styleMask: [.borderless, .resizable], backing: .buffered, defer: false)
+        panel = CardPanel(contentRect: NSRect(x: 100, y: 180, width: 680, height: 400), styleMask: [.borderless, .resizable, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.title = "DailyToDo 桌面卡片"; panel.identifier = NSUserInterfaceItemIdentifier("desktop-card")
         panel.isOpaque = false; panel.backgroundColor = .clear; panel.hasShadow = true
         panel.minSize = NSSize(width: 600, height: 340); panel.maxSize = NSSize(width: 1100, height: 850)
-        panel.hidesOnDeactivate = false; panel.isReleasedWhenClosed = false
-        panel.collectionBehavior = [.moveToActiveSpace]
+        panel.hidesOnDeactivate = false; panel.canHide = false
+        panel.isReleasedWhenClosed = false; panel.isExcludedFromWindowsMenu = true
+        // Desktop interactions must not activate/raise all DailyToDo windows.
+        // Editing uses a separate normal, activating panel below.
+        panel.isFloatingPanel = false
+        panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenNone]
         panel.delegate = self
         panel.contentView = NSHostingView(rootView: DesktopCardView(model: model))
         if let frame = CardPosition.restore() { applyFrame(frame) }
@@ -65,16 +69,30 @@ import TodoInteraction
         }
         model.cardPositionIssue = nil
         model.cardVisible = true
-        if activate { NSApp.activate(ignoringOtherApps: true); panel.makeKeyAndOrderFront(nil) }
+        if activate { panel.makeKeyAndOrderFront(nil) }
         else { panel.orderFrontRegardless() }
+        if activate, editor != nil {
+            NSApp.unhide(nil); NSApp.activate(ignoringOtherApps: true)
+            editorWindow?.makeKeyAndOrderFront(nil)
+        }
     }
-    func hide() { model.cardVisible = false; panel.orderOut(nil); UserDefaults.standard.set(false, forKey: "showCard") }
+    func hide() {
+        model.cardVisible = false; panel.orderOut(nil); editorWindow?.orderOut(nil)
+        UserDefaults.standard.set(false, forKey: "showCard")
+    }
     func toggle() { if isVisible { hide() } else { show() } }
     func announce(_ message: String) {
         guard isVisible, let app = NSApp else { return }
         NSAccessibility.post(element: app, notification: .announcementRequested, userInfo: [.announcement: message, .priority: NSAccessibilityPriorityLevel.medium.rawValue])
     }
-    func updateLevel() { panel.level = UserDefaults.standard.bool(forKey: "floatingCard") ? .floating : .normal }
+    func updateLevel() {
+        let floating = UserDefaults.standard.bool(forKey: "floatingCard")
+        // Use the system-defined desktop icon plane; never hard-code its level.
+        panel.level = floating ? .floating : NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.desktopIconWindow)) + 1)
+        // A desktop-level child would inherit the parent level and bury text
+        // inputs behind normal apps. The editor deliberately stays independent.
+        editorWindow?.level = floating ? .floating : .normal
+    }
     func resetPosition() {
         if let frame = CardPosition.reset() { applyFrame(frame); CardPosition.save(frame) }
         show()
@@ -91,7 +109,7 @@ import TodoInteraction
         let rect = NSRect(x: min(max(frame.minX, visible.minX), visible.maxX - width), y: min(max(frame.minY, visible.minY), visible.maxY - height), width: width, height: height)
         applyFrame(rect)
     }
-    func windowDidMove(_ notification: Notification) { if notification.object as? NSWindow === panel, !applyingFrame { CardPosition.save(panel.frame) } }
+    func windowDidMove(_ notification: Notification) { if notification.object as? NSWindow === panel, !applyingFrame { CardPosition.save(panel.frame); placeEditor() } }
     func windowDidEndLiveResize(_ notification: Notification) { clampFrame(); CardPosition.save(panel.frame) }
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         if sender === panel { hide(); return false }
@@ -133,7 +151,8 @@ import TodoInteraction
         }).id(next.id))
         if let editorWindow {
             placeEditor()
-            panel.addChildWindow(editorWindow, ordered: .above)
+            updateLevel()
+            NSApp.unhide(nil)
             NSApp.activate(ignoringOtherApps: true); editorWindow.makeKeyAndOrderFront(nil)
         }
     }
@@ -145,7 +164,7 @@ import TodoInteraction
         let x = panel.frame.maxX + 12 + width < area.maxX ? panel.frame.maxX + 12 : panel.frame.minX - width - 12
         editorWindow.setFrame(NSRect(x: min(max(x, area.minX), area.maxX - width), y: min(max(panel.frame.maxY - height, area.minY), area.maxY - height), width: width, height: height), display: true)
     }
-    func discardEditor() { if let editorWindow { panel.removeChildWindow(editorWindow); editorWindow.orderOut(nil) }; editor = nil; model.cardEditing = false }
+    func discardEditor() { if let editorWindow { editorWindow.orderOut(nil) }; editor = nil; model.cardEditing = false }
 }
 
 struct DesktopCardView: View {

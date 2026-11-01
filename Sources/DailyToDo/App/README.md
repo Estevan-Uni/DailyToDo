@@ -29,3 +29,5 @@ V21：隔离启动诊断补充实际NSAppearance名；--ui-light/--ui-dark仅在
 V22：ReminderNavigation.swift负责通知目标只读定位。先验证存在，再处理主窗口草稿，之后重读当前日期/修订；完成历史、已顺延任务和已归档倒计时都按当前状态打开，缺失/删除/抑制不复活。有效打开清除旧搜索/相关过滤和失效提示；异步读取期间主编辑器、仓库或忙状态变化时不替换新草稿。卡片草稿不被覆盖。
 
 AppLifecycle在applicationWillFinishLaunching安装通知代理，数据与窗口动作就绪后连接打开队列。--ui-open-reminder仅显式--ui-test进程可重放冷启动目标，不发送系统通知；普通启动忽略。AppModel可注入独立存储URL与离开确认选择，Tests/DailyToDoTests直接验证实际模型和临时SQLite。requestRemindersFromEditor只由用户切换提醒/选择重复提前量调用；初始化/打开草稿不请求，已启用不重复请求，拒绝不改输入或数据。
+
+V26：卡片在App隐藏后仍可用；显式showMainAction/showSettingsAction先unhide再激活和打开窗口，普通卡片展示不激活整个App。

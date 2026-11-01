@@ -76,8 +76,14 @@ private struct LaunchBridge: View {
     var body: some View {
         Image(systemName: "checklist").accessibilityLabel("DailyToDo")
             .onAppear {
-                model.showMainAction = { model.mainWindowRequested = true; openWindow(id: "main"); NSApp.activate(ignoringOtherApps: true) }
-                model.showSettingsAction = { openSettings(); NSApp.activate(ignoringOtherApps: true) }
+                model.showMainAction = {
+                    model.mainWindowRequested = true
+                    // A canHide=false desktop card can be used while the App
+                    // itself is hidden. Unhide before asking SwiftUI to open.
+                    NSApp.unhide(nil); NSApp.activate(ignoringOtherApps: true)
+                    openWindow(id: "main")
+                }
+                model.showSettingsAction = { NSApp.unhide(nil); NSApp.activate(ignoringOtherApps: true); openSettings() }
                 lifecycle.presentInitialWindowIfReady()
             }
     }

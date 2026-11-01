@@ -8,7 +8,7 @@
 
 运行 `./scripts/package-app.sh` 生成 Apple silicon 本机预览包 `dist/DailyToDo-macOS-arm64-preview.zip`，解压后将 DailyToDo.app 放到本机 Applications 文件夹打开。当前机器安装副本位于 `~/Applications/DailyToDo.app`。
 
-这是供人工验收的 **0.1.0 build 14 本机预览**：已做沙盒 ad-hoc 签名及解压验证，未做 Developer ID 公证。当前实测 macOS 26.6.2、Apple silicon；macOS 14 为部署目标，最低系统和 Intel 未实测。
+这是供人工验收的 **0.1.0 build 15 本机预览**：已做沙盒 ad-hoc 签名及解压验证，未做 Developer ID 公证。当前实测 macOS 26.6.2、Apple silicon；macOS 14 为部署目标，最低系统和 Intel 未实测。
 
 本轮交付状态与建议验收顺序见 [HANDOFF.md](docs/HANDOFF.md)。
 
@@ -39,7 +39,7 @@
 
 各目录包含模块 README。无第三方包、账户或服务依赖。
 
-独立Xcode UI入口见[UITests/README.md](UITests/README.md)：共享工程、scheme、测试计划和8个用例已提供。当前仅完成结构/语法检查与同源界面的原生操作核对，尚未在完整Xcode运行；8个用例不计入142项已通过测试。
+独立Xcode UI入口见[UITests/README.md](UITests/README.md)：共享工程、scheme、测试计划和9个用例已提供。当前仅完成结构/语法检查与同源界面的原生操作核对，尚未在完整Xcode运行；9个用例不计入142项已通过测试。
 
 ## 构建与验证
 
@@ -56,3 +56,5 @@ swift run -c release TodoBenchmark --output docs/benchmark.json
 `package-app.sh --install-local` 另外安装到 `~/Applications`。默认运行不填入示例；合成验收推荐 `./scripts/run-ui-preview.sh acceptance-20261031`，脚本拒绝重复进程并使用独立测试库。详见 scripts/README.md。
 
 名称更新保留 `local.tododesktop.mac`、原本机数据路径及 V1 存储模型，已有记录无需迁移。旧截图和 V24 之前记录使用当时名称；当前工程检查见 [ENGINEERING_CHECK.md](docs/ENGINEERING_CHECK.md)。
+
+V26默认固定卡片在桌面，其他窗口可以覆盖；可选置顶。App需后台运行，退出后卡片关闭。实现与原生验收边界见[DESKTOP_CARD.md](docs/DESKTOP_CARD.md)。
