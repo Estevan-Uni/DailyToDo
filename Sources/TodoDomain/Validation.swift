@@ -18,7 +18,7 @@ public enum ModelValidator {
     public static func task(_ value: TodoItem, categories: Set<UUID>) throws {
         try title(value.title, notes: value.notes)
         guard value.scheduledDay.isUserSelectable else { throw DomainError.invalidDate }
-        guard (0..<1440).contains(value.scheduledMinute) else { throw DomainError.invalidTime }
+        guard ScheduledTime.isValid(value.scheduledMinute) else { throw DomainError.invalidTime }
         guard categories.contains(value.categoryID) else { throw DomainError.missingCategory }
         let linkage = [value.seriesID != nil, value.ruleVersionID != nil, value.occurrenceDay != nil]
         guard linkage.allSatisfy({ $0 }) || linkage.allSatisfy({ !$0 }) else {
@@ -31,13 +31,14 @@ public enum ModelValidator {
     public static func rule(_ value: TodoSeriesRule, categories: Set<UUID>) throws {
         try title(value.title, notes: value.notes)
         guard value.effectiveFromDay.isUserSelectable, value.endDay?.isUserSelectable != false,
-              (0..<1440).contains(value.minute),
+              ScheduledTime.isValid(value.minute),
               value.endDay == nil || value.endDay! >= value.effectiveFromDay,
               value.weekdays.isSubset(of: Set(1...7)),
               value.frequency != .weekly || !value.weekdays.isEmpty,
               value.reminderOffsetMinutes == nil || (0...10080).contains(value.reminderOffsetMinutes!) else {
             throw DomainError.invalidRecurrence
         }
+        if value.reminderOffsetMinutes != nil, !ScheduledTime.hasTime(value.minute) { throw DomainError.recurringReminderNeedsTime }
         guard categories.contains(value.categoryID) else { throw DomainError.missingCategory }
         if let end = value.endDay, value.frequency == .weekly {
             let firstWeek = min(6, value.effectiveFromDay.distance(to: end))

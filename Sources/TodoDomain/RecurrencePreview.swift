@@ -20,7 +20,7 @@ public enum RecurrencePreview {
     public static func summary(frequency: RepeatFrequency, weekdays: Set<Int>, minute: Int, category: String) -> String {
         let names = ["一", "二", "三", "四", "五", "六", "日"]
         let days = weekdays.filter { (1...7).contains($0) }.sorted().map { names[$0 - 1] }.joined(separator: "、")
-        return "\(frequency == .daily ? "每日" : "每周" + days) \(String(format: "%02d:%02d", minute / 60, minute % 60)) · \(category)"
+        return "\(frequency == .daily ? "每日" : "每周" + days) \(ScheduledTime.label(minute, ifUnspecified: "未设时间")) · \(category)"
     }
 }
 
@@ -31,7 +31,7 @@ public struct OccurrencePreview: Identifiable, Hashable, Sendable {
     public let minute: Int
     public let originalDay: LocalDate
     public let isOverride: Bool
-    public var timeLabel: String { String(format: "%02d:%02d", minute / 60, minute % 60) }
+    public var timeLabel: String { ScheduledTime.label(minute, ifUnspecified: "未设时间") }
     public init(id: UUID, title: String, day: LocalDate, minute: Int, originalDay: LocalDate, isOverride: Bool) {
         self.id = id; self.title = title; self.day = day; self.minute = minute; self.originalDay = originalDay; self.isOverride = isOverride
     }
@@ -42,7 +42,7 @@ extension TaskDraft {
     /// A previous end/stop date is deliberately not reused for the new series.
     public init(copying rule: TodoSeriesRule, starting day: LocalDate) {
         self.init(day: day)
-        title = rule.title; notes = rule.notes; minute = rule.minute; categoryID = rule.categoryID
+        title = rule.title; notes = rule.notes; minute = ScheduledTime.hasTime(rule.minute) ? rule.minute : nil; categoryID = rule.categoryID
         isImportant = rule.isImportant; frequency = rule.frequency; weekdays = rule.weekdays
         reminderOffsetMinutes = rule.reminderOffsetMinutes
     }

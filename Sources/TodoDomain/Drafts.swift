@@ -27,7 +27,7 @@ public struct TaskDraft: Equatable, Sendable {
     public init(day: LocalDate) { self.day = day }
     public init(task: TodoItem, rule: TodoSeriesRule? = nil, series: TodoSeries? = nil) {
         id = task.id; baseRevision = task.revision; title = task.title; notes = task.notes
-        day = task.scheduledDay; minute = task.scheduledMinute; categoryID = task.categoryID
+        day = task.scheduledDay; minute = task.hasScheduledTime ? task.scheduledMinute : nil; categoryID = task.categoryID
         isImportant = task.isImportant; reminderAt = task.reminderAt
         frequency = rule?.frequency; weekdays = rule?.weekdays ?? []
         endDay = rule?.endDay; reminderOffsetMinutes = rule?.reminderOffsetMinutes

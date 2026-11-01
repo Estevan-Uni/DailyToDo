@@ -3,12 +3,14 @@ import CryptoKit
 
 public enum DomainError: Error, LocalizedError, Equatable, Sendable {
     case invalidDate, invalidTime, invalidRange, emptyTitle, titleTooLong, notesTooLong
+    case recurringReminderNeedsTime
     case missingCategory, invalidColor, invalidCategoryName, duplicateCategory, invalidRecurrence
     case invalidSnapshot(String), conflict, notFound, unsupportedVersion, invalidReminder, unavailableLocalTime
     public var errorDescription: String? {
         switch self {
         case .invalidDate: "请选择有效日期（1900–9999 年）。"
-        case .invalidTime: "请填写时间（00:00–23:59）。"
+        case .invalidTime: "时间格式应为 HH:mm（00:00–23:59），也可以留空。"
+        case .recurringReminderNeedsTime: "重复提醒需要具体时间；请填写时间，或选择不提醒。"
         case .unavailableLocalTime: "该日期与时间在当前时区无法解析，请选择其他日期或时刻。"
         case .invalidRange: "查询日期范围须为 1–366 天。"
         case .emptyTitle: "请填写事项或事件。"
@@ -70,7 +72,7 @@ public struct TodoItem: Identifiable, Codable, Hashable, Sendable {
     public var createdAt: Date = Date()
     public var updatedAt: Date = Date()
     public var revision: Int64 = 1
-    public init(id: UUID = UUID(), title: String, scheduledDay: LocalDate, scheduledMinute: Int, categoryID: UUID) {
+    public init(id: UUID = UUID(), title: String, scheduledDay: LocalDate, scheduledMinute: Int = ScheduledTime.unspecified, categoryID: UUID) {
         self.id = id; self.title = title; self.scheduledDay = scheduledDay
         self.scheduledMinute = scheduledMinute; self.categoryID = categoryID
     }
@@ -78,7 +80,8 @@ public struct TodoItem: Identifiable, Codable, Hashable, Sendable {
         if let seriesID, let occurrenceDay { return OccurrenceIdentity.key(seriesID: seriesID, day: occurrenceDay) }
         return "t:\(id.uuidString.lowercased())"
     }
-    public var timeLabel: String { String(format: "%02d:%02d", scheduledMinute / 60, scheduledMinute % 60) }
+    public var hasScheduledTime: Bool { ScheduledTime.hasTime(scheduledMinute) }
+    public var timeLabel: String { ScheduledTime.label(scheduledMinute) }
 }
 
 public struct TodoSeries: Identifiable, Codable, Hashable, Sendable {

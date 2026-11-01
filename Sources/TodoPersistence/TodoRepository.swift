@@ -106,7 +106,8 @@ public actor TodoRepository {
             guard draft.scope == .thisAndFollowing, let original = previous, let id = original.seriesID, let day = original.occurrenceDay else { throw DomainError.conflict }
             try validateReview(reviewed, id: id, from: day, change: draft.frequency == nil ? .detach(selectedID: original.id) : .update(selectedID: original.id))
         }
-        guard let minute = draft.minute, (0..<1440).contains(minute) else { throw DomainError.invalidTime }
+        let minute = draft.minute ?? ScheduledTime.unspecified
+        guard ScheduledTime.isValid(minute) else { throw DomainError.invalidTime }
         guard let categoryID = draft.categoryID, config.categories.contains(where: { $0.id == categoryID }) else { throw DomainError.missingCategory }
         try ModelValidator.title(draft.title, notes: draft.notes)
         guard draft.day.isUserSelectable else { throw DomainError.invalidDate }
@@ -472,7 +473,8 @@ public actor TodoRepository {
         value.reason = reason; value.createdAt = now(); return value
     }
     private func makeRule(_ draft: TaskDraft, seriesID: UUID, from: LocalDate, frequency: RepeatFrequency, categories: [TodoCategory]) throws -> TodoSeriesRule {
-        guard let minute = draft.minute, let category = draft.categoryID else { throw DomainError.invalidRecurrence }
+        let minute = draft.minute ?? ScheduledTime.unspecified
+        guard let category = draft.categoryID else { throw DomainError.invalidRecurrence }
         var rule = TodoSeriesRule(seriesID: seriesID, from: from, title: draft.title.trimmingCharacters(in: .whitespacesAndNewlines),
                                   minute: minute, categoryID: category, frequency: frequency, weekdays: draft.weekdays)
         rule.notes = draft.notes; rule.isImportant = draft.isImportant; rule.endDay = draft.endDay; rule.reminderOffsetMinutes = draft.reminderOffsetMinutes

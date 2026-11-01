@@ -200,22 +200,19 @@ private struct CalendarTask: View {
         HStack(alignment: .top, spacing: 3) {
             Button { if TaskCompletionInput.acceptsCurrentEvent { Task { await model.toggle(item) } } } label: { Image(systemName: item.completedAt == nil ? "circle" : "checkmark.circle.fill").font(.system(size: 12)).foregroundStyle(item.completedAt == nil ? Color.secondary : Color.accentColor).frame(width: 15, height: 19) }.buttonStyle(.plain).accessibilityLabel("\(item.completedAt == nil ? "完成" : "取消完成")：\(item.title)")
             Button { Task { await model.edit(item) } } label: {
-                if multiline {
-                    VStack(alignment: .leading, spacing: 5) { Text(item.timeLabel).font(.system(size: 10)).foregroundStyle(.secondary); title.lineLimit(4); HStack(spacing: 4) { categoryDot; Text(model.category(item.categoryID)?.name ?? "").font(.system(size: 10)).foregroundStyle(.secondary) }; if model.hasPassed(item) { Text("已过时间").font(.system(size: 10)).foregroundStyle(.secondary) }; LocalTimeNotice(day: item.scheduledDay, minute: item.scheduledMinute) }
-                } else {
-                    HStack(spacing: 4) { categoryDot; if model.hasPassed(item) { Image(systemName: "clock").font(.system(size: 9)).foregroundStyle(.secondary).accessibilityHidden(true) }; Text("\(item.timeLabel) \(item.title)").font(.system(size: 11, weight: .medium)).strikethrough(item.completedAt != nil).foregroundStyle(item.completedAt == nil ? .primary : .secondary).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading) }
+                HStack(alignment: .top, spacing: 4) {
+                    categoryDot.padding(.top, multiline ? 5 : 4)
+                    title.lineLimit(multiline ? 4 : 1)
                 }
-            }.buttonStyle(.plain).accessibilityLabel("\(item.timeLabel)，\(item.title)，\(model.category(item.categoryID)?.name ?? "")，\(item.completedAt == nil ? "未完成" : "已完成")\(item.isImportant ? "，重要" : "")\(completionDescription)\(model.hasPassed(item) ? "，已过时间" : "")\(resolutionDescription)，编辑").accessibilityIdentifier("calendar-event-\(item.id)")
-            if !multiline, !resolutionDescription.isEmpty { Image(systemName: "clock.arrow.2.circlepath").font(.system(size: 9)).foregroundStyle(.secondary).accessibilityHidden(true) }
+            }.buttonStyle(.plain).accessibilityLabel("\(item.title)，\(model.category(item.categoryID)?.name ?? "")，\(item.completedAt == nil ? "未完成" : "已完成")\(item.isImportant ? "，重要" : "")\(completionDescription)，编辑").accessibilityIdentifier("calendar-event-\(item.id)")
             if item.isImportant { Image(systemName: "star.fill").font(.system(size: 8)).foregroundStyle(.orange).padding(.top, 4).accessibilityHidden(true) }
         }
             .padding(multiline ? 7 : 3).frame(maxWidth: .infinity, alignment: .leading)
             .background(.primary.opacity(item.completedAt == nil ? 0.035 : 0.015), in: RoundedRectangle(cornerRadius: multiline ? 8 : 4))
             .contextMenu { TaskContextMenu(model: model, item: item, onEdit: { showDate in Task { await model.edit(item, showDatePicker: showDate) } }) }
-            .help("\(item.timeLabel) \(item.title)\(completionDescription)\(model.hasPassed(item) ? "，已过时间" : "")\(resolutionDescription)")
+            .help("\(item.title)\(completionDescription)")
     }
     private var categoryDot: some View { CategoryDot(hex: model.category(item.categoryID)?.colorHex ?? "#83908B", size: 5) }
-    private var resolutionDescription: String { let value = LocalTimePresentation.detail(day: item.scheduledDay, minute: item.scheduledMinute, timeZone: model.displayTimeZone); return value.isEmpty ? "" : "，" + value }
     private var completionDescription: String { item.completedAt.map { "，完成于 \(model.clock.formatted($0))" } ?? "" }
-    private var title: some View { Text(item.title).font(.system(size: 12, weight: .regular)).strikethrough(item.completedAt != nil).foregroundStyle(item.completedAt == nil ? .primary : .secondary).frame(maxWidth: .infinity, alignment: .leading) }
+    private var title: some View { Text(item.title).font(.system(size: multiline ? 12 : 11, weight: .medium)).strikethrough(item.completedAt != nil).foregroundStyle(item.completedAt == nil ? .primary : .secondary).frame(maxWidth: .infinity, alignment: .leading) }
 }

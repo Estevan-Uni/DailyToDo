@@ -28,7 +28,8 @@ struct TaskRow: View {
                 VStack(alignment: .leading, spacing: 7) {
                     HStack(alignment: .top) { Text(item.title).font(compact ? .callout.weight(.medium) : .body.weight(.medium)).strikethrough(item.completedAt != nil).foregroundStyle(item.completedAt == nil ? .primary : .secondary).lineLimit(2); if item.isImportant { Image(systemName: "star.fill").font(.caption2).foregroundStyle(.orange) }; Spacer(minLength: 0) }
                     HStack(spacing: 6) {
-                        Text(showDay ? "\(item.scheduledDay) \(item.timeLabel)" : item.timeLabel).monospacedDigit()
+                        if showDay { Text(item.scheduledDay.description).monospacedDigit() }
+                        if item.hasScheduledTime { Text(item.timeLabel).monospacedDigit() }
                         CategoryDot(hex: model.category(item.categoryID)?.colorHex ?? "#83908B")
                         Text(model.category(item.categoryID)?.name ?? "未知类型").lineLimit(1).help(model.category(item.categoryID)?.name ?? "未知类型")
                         if item.seriesID != nil { Label(model.repeatLabel(item), systemImage: "repeat").font(.caption2).fixedSize().accessibilityLabel("\(model.repeatLabel(item))固定待办") }

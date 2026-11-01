@@ -44,3 +44,5 @@ Repository、完整类型迁移、规则前向变更与编辑器已接入。Rele
 V19：countdown(id:)提供包含删除/归档状态的单条读取，编辑入口负责可编辑条件。saveCountdownWithUndo返回事件与可选撤销；新建不产生普通撤销，修改、归档、软删除可撤销，最近删除恢复除外。撤销快照包含修订期望，rebased(after:)仅在成功撤销后沿匹配的旧修订链更新本机旧动作；其他写入不放宽保护。已删除倒计时不能被旧归档/编辑命令修改，规则抑制事项不能被排队中的旧完成命令复活。
 
 V20：StoreRecovery.create接收AppClock，恢复后Repository继续使用相同now/timeZone；新增跨年本地今天顺延回归，恢复测试现6项。TodoServices的ReminderSource只读协议由TodoRepository满足，通知失败不会获得数据库写入接口；其真实SQLite集成另验证时区变化时规则提醒重新解释而持久记录不变。
+
+V27：待办draft.minute=nil归一化为明确未设时间，旧精确时分不变，不改变V1 SQLite结构。无时间每日/每周与实例例外、顺延、完成、JSON恢复均有真实SQLite回归；Repository累计36项。无时间相对重复提醒在提交前拒绝。

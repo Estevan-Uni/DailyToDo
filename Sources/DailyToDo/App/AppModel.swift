@@ -336,7 +336,7 @@ final class AppModel {
             switch error as? DomainError {
             case .emptyTitle, .titleTooLong: editor.validationField = .title
             case .notesTooLong: editor.validationField = .notes
-            case .invalidTime, .unavailableLocalTime: editor.validationField = .time
+            case .invalidTime, .unavailableLocalTime, .recurringReminderNeedsTime: editor.validationField = .time
             case .missingCategory: editor.validationField = .category
             case .invalidRecurrence: editor.validationField = .recurrence
             case .invalidReminder: editor.validationField = .reminder

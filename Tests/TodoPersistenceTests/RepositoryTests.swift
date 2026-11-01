@@ -38,13 +38,78 @@ import TodoDomain
     }
     @Test func requiredFieldsAreNotBypassedByRepository() async throws {
         try await withRepository { repo, _ in
-            var value = try draft(); value.minute = nil
+            var value = try draft(); value.minute = -2
             await #expect(throws: DomainError.invalidTime) { try await repo.saveTask(value) }
             value = try draft(); value.categoryID = nil
             await #expect(throws: DomainError.missingCategory) { try await repo.saveTask(value) }
             value = try draft(); value.title = "  "
             await #expect(throws: DomainError.emptyTitle) { try await repo.saveTask(value) }
             #expect(try await repo.agenda(.days(from: d("2026-11-02"), count: 1)).items.isEmpty)
+        }
+    }
+    @Test func optionalTimeSurvivesSQLiteBackupAndTimeEdits() async throws {
+        try await withRepository { repo, url in
+            let timed = try await repo.saveTask(draft("已有时间")).task
+            var noTime = try draft("日期待办"); noTime.minute = nil
+            noTime.notes = "保留备注"; noTime.reminderAt = clock.addingTimeInterval(3600)
+            let saved = try await repo.saveTask(noTime).task
+            #expect(!saved.hasScheduledTime && saved.timeLabel.isEmpty)
+            #expect(TaskDraft(task: saved).minute == nil)
+            var clear = TaskDraft(task: timed); clear.minute = nil
+            let cleared = try await repo.saveTask(clear).task
+            #expect(cleared.id == timed.id && !cleared.hasScheduledTime)
+            var restore = TaskDraft(task: cleared); restore.minute = 0
+            let midnight = try await repo.saveTask(restore).task
+            #expect(midnight.id == timed.id && midnight.timeLabel == "00:00")
+            let backup = try await repo.exportData()
+            let decoded = try SnapshotCodec.decode(backup)
+            #expect(decoded.tasks.first { $0.id == saved.id } == saved)
+            try await repo.restoreData(backup)
+            try await repo.close()
+            let reopened = try TodoRepository(url: url)
+            #expect(try await reopened.task(id: saved.id) == saved)
+            #expect(try await reopened.task(id: midnight.id) == midnight)
+            try await reopened.close()
+        }
+    }
+    @Test func untimedDailyAndWeeklyInstancesRemainIndependent() async throws {
+        try await withRepository { repo, _ in
+            for frequency in [RepeatFrequency.daily, .weekly] {
+                var value = try draft(frequency.rawValue, repeating: frequency); value.minute = nil
+                let first = try await repo.saveTask(value).task
+                let range = try await repo.agenda(.days(from: d("2026-11-02"), count: 3))
+                let instances = range.items.filter { $0.seriesID == first.seriesID }
+                #expect(instances.count == (frequency == .daily ? 3 : 2))
+                #expect(instances.allSatisfy { !$0.hasScheduledTime && $0.reminderAt == nil })
+                _ = try await repo.setCompletion(id: first.id, completed: true)
+                let next = try await repo.agenda(.days(from: d("2026-11-03"), count: 2))
+                #expect(next.items.contains { $0.seriesID == first.seriesID && $0.completedAt == nil && !$0.hasScheduledTime })
+            }
+            let before = try await repo.exportData()
+            #expect(try await repo.rolloverUnfinishedSingles() == 0)
+            #expect(try await repo.exportData() == before)
+        }
+    }
+    @Test func untimedRolloverPreservesExplicitReminderAndIdentity() async throws {
+        try await withRepository { repo, _ in
+            var value = try draft("顺延", day: "2026-10-30"); value.minute = nil
+            value.reminderAt = clock.addingTimeInterval(3600)
+            let original = try await repo.saveTask(value).task
+            #expect(try await repo.rolloverUnfinishedSingles() == 1)
+            let moved = try #require(await repo.task(id: original.id))
+            #expect(moved.scheduledDay == (try d("2026-11-02")) && !moved.hasScheduledTime)
+            #expect(moved.reminderAt == original.reminderAt)
+            #expect(try await repo.reminderCandidates().tasks.first?.id == original.id)
+            _ = try await repo.setCompletion(id: original.id, completed: true)
+            #expect(try await repo.reminderCandidates().tasks.isEmpty)
+        }
+    }
+    @Test func untimedRelativeReminderRejectsWithoutWriting() async throws {
+        try await withRepository { repo, _ in
+            var value = try draft(repeating: .daily); value.minute = nil; value.reminderOffsetMinutes = 0
+            await #expect(throws: DomainError.recurringReminderNeedsTime) { try await repo.saveTask(value) }
+            let snapshot = try SnapshotCodec.decode(await repo.exportData())
+            #expect(snapshot.tasks.isEmpty && snapshot.rules.isEmpty && snapshot.series.isEmpty)
         }
     }
     @Test func countdownEditArchiveDeleteUndoPreservesContentsAndRejectsStaleUndo() async throws {

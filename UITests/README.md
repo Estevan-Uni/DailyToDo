@@ -4,7 +4,7 @@
 
 | 文件 | 职责 |
 | --- | --- |
-| DailyToDoUITests.swift | 9个原生UI用例、条件等待、每用例独立数据库与截图附件 |
+| DailyToDoUITests.swift | 10个原生UI用例、条件等待、每用例独立数据库与截图附件 |
 | DailyToDo.xctestplan | 串行测试计划，关联独立App与UI测试target |
 | Host-Info.plist | 独立App元数据，用构建变量取得Bundle ID/版本 |
 | ../DailyToDo.xcodeproj | 同一正式App源码、四个本地Swift Package库、共享DailyToDo-UI scheme |
@@ -41,9 +41,9 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer ./scripts/run-ui-tests.
 7. 600×340最小卡片分别以进程内浅/深外观启动，在100项当天任务/200倒计时下保留双栏、滚动区域及固定添加入口；保留两份截图附件。
 8. 类型浮层获得列表焦点，方向键浏览、回车/空格确认；Escape保持原选择和草稿，普通回车只确认类型，明确⌘Return才保存事项。该用例尚未运行。
 
-等待基于控件存在/值/可用状态，保存后等待“保存并继续”按钮消失和编辑器恢复可用，不用固定sleep掩盖事务时序。关键控件使用稳定accessibilityIdentifier；macOS原生侧栏会合并行内容而不导出内部Label ID，因此该处使用主窗口内的明确中文行标签。V23类型列表也由原生行表示，按category-options容器内中文行及选中状态定位；选择通过方向键/回车，不依赖被合并的内部按钮ID。卡片操作前通过现有显示入口将普通面板带到前方。
+等待基于控件存在/值/可用状态，保存后等待“保存并继续”按钮消失和编辑器恢复可用，不用固定sleep掩盖事务时序。关键控件使用稳定accessibilityIdentifier；macOS原生侧栏会合并行内容而不导出内部Label ID，因此该处使用主窗口内的明确中文行标签。V23类型列表也由原生行表示，按category-options容器内中文行及选中状态定位；选择通过方向键/回车，不依赖被合并的内部按钮ID。卡片操作前先关闭干净主窗口，按桌面固定模式操作。
 
-这些用例不等于全部发布矩阵：真实中文输入法候选、VoiceOver语音、物理滚轮/触控板惯性、OS辅助显示设置、通知实际投递、登录重启、多显示器/Spaces和最低系统仍按docs/ACCEPTANCE.md人工验证。当前9个用例未执行，不能加到142项已通过的Swift Testing总数里。CUA已在CLI构建的同源界面核对关键定位与流程，仍不等于XCTest Runner验证。
+这些用例不等于全部发布矩阵：真实中文输入法候选、VoiceOver语音、物理滚轮/触控板惯性、OS辅助显示设置、通知实际投递、登录重启、多显示器/Spaces和最低系统仍按docs/ACCEPTANCE.md人工验证。当前10个用例未执行，不能加到151项已通过的Swift Testing总数里。CUA已在CLI构建的同源界面核对关键定位与流程，仍不等于XCTest Runner验证。
 
 ## 维护
 
@@ -58,4 +58,6 @@ python3 scripts/generate-xcode-project.py --check
 
 系统依据：[Apple启动参数](https://developer.apple.com/documentation/xcuiautomation/xcuiapplication/launcharguments)、[Apple测试计划](https://developer.apple.com/documentation/xcode/organizing-tests-to-improve-feedback)、[Apple运行测试与结果](https://developer.apple.com/documentation/xcode/running-tests-and-interpreting-results)。
 
-V26：桌面卡片在普通窗口后方，卡片helper关闭干净主窗口后再操作，需要核对日历时从卡片打开；新增隐藏App后仍可编辑并找回主窗口。9项用例仍未运行。
+V26：桌面卡片在普通窗口后方，卡片helper关闭干净主窗口后再操作，需要核对日历时从卡片打开；新增隐藏App后仍可编辑并找回主窗口。10项用例仍未运行。
+
+10. V27无时间保存/重开为空，填08:30后详情保留但日历仍仅显示标题。必填错误用例改为验证非法非空18:99，不再拦截空时分。10项用例尚未运行。

@@ -544,7 +544,7 @@
 				"CODE_SIGN_IDENTITY" = "-";
 				"SUPPORTED_PLATFORMS" = "macosx";
 				"MARKETING_VERSION" = "0.1.0";
-				"CURRENT_PROJECT_VERSION" = "15";
+				"CURRENT_PROJECT_VERSION" = "16";
 				"LD_RUNPATH_SEARCH_PATHS" = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -569,7 +569,7 @@
 				"CODE_SIGN_IDENTITY" = "-";
 				"SUPPORTED_PLATFORMS" = "macosx";
 				"MARKETING_VERSION" = "0.1.0";
-				"CURRENT_PROJECT_VERSION" = "15";
+				"CURRENT_PROJECT_VERSION" = "16";
 				"LD_RUNPATH_SEARCH_PATHS" = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

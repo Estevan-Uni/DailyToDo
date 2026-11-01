@@ -11,7 +11,8 @@ enum LocalTimePresentation {
         }
     }
     static func detail(day: LocalDate, minute: Int, timeZone: TimeZone) -> String {
-        (try? day.resolveTime(minute: minute, timeZone: timeZone)).map(detail) ?? "该日期与时间在当前时区无法解析，请选择其他时刻。"
+        guard minute != ScheduledTime.unspecified else { return "" }
+        return (try? day.resolveTime(minute: minute, timeZone: timeZone)).map(detail) ?? "该日期与时间在当前时区无法解析，请选择其他时刻。"
     }
 }
 

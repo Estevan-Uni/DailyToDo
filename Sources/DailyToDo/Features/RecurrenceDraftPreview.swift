@@ -11,7 +11,7 @@ struct RecurrenceDraftPreview: View {
                 Text(RecurrencePreview.summary(frequency: frequency, weekdays: editor.task.weekdays, minute: preview.minute, category: editor.task.categoryID.flatMap(model.category)?.name ?? "未选类型")).font(.caption)
                 ForEach(preview.days, id: \.self) { day in
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("\(day.description)  \(String(format: "%02d:%02d", preview.minute / 60, preview.minute % 60))").font(.caption).monospacedDigit()
+                        Text("\(day.description)  \(ScheduledTime.label(preview.minute, ifUnspecified: "未设时间"))").font(.caption).monospacedDigit()
                         LocalTimeNotice(day: day, minute: preview.minute)
                     }
                 }
@@ -24,7 +24,7 @@ struct RecurrenceDraftPreview: View {
                 }
                 Text("按本地钟表时间。以结束日期和后续版本为准。").font(.caption2).foregroundStyle(.secondary)
             } else {
-                Text("填写有效开始日期、时间和重复星期后，可预览最近三次发生。").font(.caption).foregroundStyle(.secondary)
+                Text("填写有效开始日期和重复星期后，可预览最近三次发生。").font(.caption).foregroundStyle(.secondary)
             }
         }.frame(maxWidth: .infinity, alignment: .leading).padding(12).accessibilityElement(children: .contain).accessibilityIdentifier("recurrence-preview")
             .background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: 8))

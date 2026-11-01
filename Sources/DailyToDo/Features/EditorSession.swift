@@ -55,7 +55,7 @@ final class EditorSession: Identifiable {
         reminderEnabled = item.reminderAt != nil; reminderDate = item.reminderAt ?? clock.now().addingTimeInterval(3600)
         wasRecurring = item.seriesID != nil; wasCompleted = item.completedAt != nil
         completedAt = item.completedAt
-        if let reminder = item.reminderAt { reminderOrigin = .init(day: item.scheduledDay, minute: item.scheduledMinute, reminderAt: reminder) }
+        if item.hasScheduledTime, let reminder = item.reminderAt { reminderOrigin = .init(day: item.scheduledDay, minute: item.scheduledMinute, reminderAt: reminder) }
         baseline = signature
     }
     init(event: CountdownEvent, clock: AppClock = .system) {
@@ -69,7 +69,7 @@ final class EditorSession: Identifiable {
     init(copying rule: TodoSeriesRule, today: LocalDate, clock: AppClock = .system) {
         self.clock = clock; reminderDate = clock.now().addingTimeInterval(3600)
         kind = .task; task = TaskDraft(copying: rule, starting: today); countdown = CountdownDraft(day: today)
-        dayText = ""; timeText = String(format: "%02d:%02d", rule.minute / 60, rule.minute % 60); endText = ""
+        dayText = ""; timeText = ScheduledTime.label(rule.minute); endText = ""
         wasRecurring = false; wasCompleted = false; copySourceName = rule.title; showDatePicker = true; focusTitleOnOpen = false
         baseline = signature
     }
@@ -95,7 +95,7 @@ final class EditorSession: Identifiable {
         guard kind == .task, task.baseRevision > 0, reminderEnabled,
               task.frequency == nil || (wasRecurring && task.scope == .onlyThis),
               let origin = reminderOrigin, let day = try? LocalDate(dayText.trimmingCharacters(in: .whitespacesAndNewlines)),
-              let minute = try? Self.minute(timeText) else { return false }
+              let minute = try? Self.minute(timeText), ScheduledTime.hasTime(minute) else { return false }
         return day != origin.day || minute != origin.minute
     }
     var reminderRescheduleProposal: Date? {
@@ -105,6 +105,8 @@ final class EditorSession: Identifiable {
         return try? origin.proposed(day: day, minute: minute, timeZone: clock.timeZone())
     }
     static func minute(_ text: String) throws -> Int {
+        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.isEmpty { return ScheduledTime.unspecified }
         let parts = text.split(separator: ":", omittingEmptySubsequences: false)
         guard parts.count == 2, parts[0].count == 2, parts[1].count == 2,
               let hour = Int(parts[0]), let minute = Int(parts[1]), (0...23).contains(hour), (0...59).contains(minute) else { throw DomainError.invalidTime }
@@ -114,7 +116,7 @@ final class EditorSession: Identifiable {
     /// content edits do not repeatedly ask about an already saved occurrence.
     func manualTimeConfirmation() throws -> LocalTimeResolution? {
         guard kind == .task, task.frequency == nil || (wasRecurring && task.scope == .onlyThis),
-              let minute = task.minute else { return nil }
+              let minute = task.minute, ScheduledTime.hasTime(minute) else { return nil }
         let resolution = try task.day.resolveTime(minute: minute, timeZone: clock.timeZone())
         guard resolution.kind != .exact,
               task.baseRevision == 0 || baseline?.task.day != task.day || baseline?.task.minute != minute else { return nil }
@@ -143,6 +145,8 @@ final class EditorSession: Identifiable {
             task.day = day; task.minute = try Self.minute(timeText)
             validationField = .recurrence
             task.endDay = endText.isEmpty ? nil : try LocalDate(endText)
+            if task.frequency != nil, !(wasRecurring && task.scope == .onlyThis), task.reminderOffsetMinutes != nil,
+               !ScheduledTime.hasTime(task.minute ?? ScheduledTime.unspecified) { throw DomainError.recurringReminderNeedsTime }
             validationField = .reminder
             if reminderEnabled, adjustReminderWithSchedule, isChangingReminderSchedule {
                 guard let proposal = reminderRescheduleProposal else { throw DomainError.invalidReminder }
@@ -177,7 +181,7 @@ final class EditorSession: Identifiable {
         let reminder = kind == .task ? task.reminderAt : countdown.reminderAt
         reminderEnabled = reminder != nil
         if let reminder { reminderDate = reminder }
-        if kind == .task, let minute = task.minute, let reminder {
+        if kind == .task, let minute = task.minute, ScheduledTime.hasTime(minute), let reminder {
             reminderOrigin = .init(day: task.day, minute: minute, reminderAt: reminder)
         } else { reminderOrigin = nil }
         baseline = signature; error = nil; isConflict = false; recordUnavailable = false; validationField = nil

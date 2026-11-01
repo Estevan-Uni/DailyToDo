@@ -14,4 +14,4 @@ AppModel装配同一个AppClock给仓库、恢复后的仓库、SystemServices�
 
 独立 UI 验证使用 `./scripts/run-ui-preview.sh acceptance-20261031`，数据写入独立目录，不改变正常数据库。脚本拒绝在已有验收进程上重建或重复打开同一测试库。测试状态与实际支持矩阵见 `docs/IMPLEMENTATION.md`。
 
-另有根目录Xcode工程与UITests共享scheme/计划，直接编译本模块而不复制界面。当前结构与语法检查通过，完整Xcode编译和9个UI用例未执行；见UITests/README.md。正常发布仍由CLI脚本打包，独立宿主不替代本机发行App。
+另有根目录Xcode工程与UITests共享scheme/计划，直接编译本模块而不复制界面。当前结构与语法检查通过，完整Xcode编译和10个UI用例未执行；见UITests/README.md。正常发布仍由CLI脚本打包，独立宿主不替代本机发行App。

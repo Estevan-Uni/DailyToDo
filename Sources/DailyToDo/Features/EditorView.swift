@@ -110,8 +110,8 @@ struct EditorView: View {
                     CivilDateField(label: editor.copySourceName == nil ? "日期 *" : "新开始日期 *", text: $editor.dayText, identifier: "editor-date", showInitially: editor.showDatePicker, onInitialPresentation: { editor.showDatePicker = false })
                         .id(EditorSession.Field.date)
                 }
-                LabeledContent("时间 *") {
-                    TextField("HH:mm", text: $editor.timeText).frame(width: 100).textFieldStyle(.roundedBorder).focused($timeFocused).accessibilityLabel("待办时间，24小时制，必填").accessibilityIdentifier("editor-time")
+                LabeledContent("时间（选填）") {
+                    TextField("HH:mm", text: $editor.timeText).frame(width: 100).textFieldStyle(.roundedBorder).focused($timeFocused).accessibilityLabel("待办时间，24小时制，选填；留空表示未设时间").accessibilityIdentifier("editor-time")
                 }.id(EditorSession.Field.time)
                 if (editor.task.frequency == nil || (editor.wasRecurring && editor.task.scope == .onlyThis)), let day = try? LocalDate(editor.dayText.trimmingCharacters(in: .whitespacesAndNewlines)), let minute = try? EditorSession.minute(editor.timeText) {
                     LocalTimeNotice(day: day, minute: minute)
@@ -156,6 +156,9 @@ struct EditorView: View {
                     })) {
                         Text("不提醒").tag(Optional<Int>.none)
                         Text("准时").tag(Optional(0)); Text("提前 5 分钟").tag(Optional(5)); Text("提前 15 分钟").tag(Optional(15)); Text("提前 1 小时").tag(Optional(60)); Text("提前 1 天").tag(Optional(1440))
+                    }
+                    if editor.timeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text("未设时间仍可重复。使用重复提醒时，请填写时间；也可选择不提醒。").font(.caption).foregroundStyle(.secondary)
                     }
                     if editor.task.reminderOffsetMinutes != nil { reminderHelp }
                     Text("按本地日期与时间重复；每次发生单独完成。不重复将停止本次及以后的规则，并把当前事项保留为独立待办。").font(.caption).foregroundStyle(.secondary)

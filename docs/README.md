@@ -23,3 +23,5 @@
 - [ENGINEERING_CHECK.md](ENGINEERING_CHECK.md)：V25 DailyToDo命名、旧数据兼容与上传前检查。
 
 - [DESKTOP_CARD.md](DESKTOP_CARD.md)：V26桌面固定策略、独立编辑窗口与实际验证边界。
+
+- [OPTIONAL_TIME.md](OPTIONAL_TIME.md)：V27时分选填、提醒边界、兼容编码及原生验证。

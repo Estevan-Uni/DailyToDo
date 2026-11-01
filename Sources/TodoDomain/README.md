@@ -1,6 +1,6 @@
 # TodoDomain
 
-当前领域相关47项测试通过。ReminderTarget.swift统一task-UUID/countdown-UUID身份生成与严格解析，保留既有系统请求ID兼容性；不从标题、日期、URL或通知正文推导目标。2项新增回归覆盖实际ReminderPlan往返、大小写UUID及非法后缀/未知类型拒绝。
+当前领域相关49项测试通过。ReminderTarget.swift统一task-UUID/countdown-UUID身份生成与严格解析，保留既有系统请求ID兼容性；不从标题、日期、URL或通知正文推导目标。2项新增回归覆盖实际ReminderPlan往返、大小写UUID及非法后缀/未知类型拒绝。
 
 `AppClock`提供可发送的当前时刻/时区依赖、同一Gregorian日历、今天/日期投影及显式时区格式化。默认每次读取系统时区，测试可注入固定或受锁保护的可变上下文，不修改系统设置；2项回归覆盖跨年日期/显示与23小时DST日边界。业务民用日期仍固定Gregorian，不因系统首选其他历法改变存储含义。
 
@@ -28,3 +28,5 @@ JSON `schemaVersion = 1`；`LocalDate` 编为年月日字符串，绝对时刻�
 `ReminderRescheduling.swift`仅计算用户明确选择的提醒平移建议；不修改原值、不触发通知。`AgendaClock.swift`提供今天已过时间和下一变化时刻的只读投影，排除完成/删除/抑制；各3项回归，领域相关共43项。
 
 `LocalTimeResolution.swift`统一民用时间到绝对时刻的解析，返回实际时分、UTC偏移和重复时间的两候选。使用有界转换窗口和偏移候选验证，缺口取本日首个合法时刻、重复取最早；整日不存在时返回独立错误。修复当前SDK半小时匹配的次日跳转，LocalDate.instant直接复用；4项解析回归和Persistence同日提醒回归覆盖真实结果。
+
+V27：ScheduledTime.unspecified(-1)与00:00(0)明确区分，不改变原整数字段/SQLite模型；其他负数和越界仍拒绝。无时间不参与日内逾时，不生成虚构时刻；绝对提醒独立，相对重复提醒要求具体时分。

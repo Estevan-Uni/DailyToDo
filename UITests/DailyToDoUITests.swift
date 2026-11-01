@@ -108,8 +108,9 @@ final class DailyToDoUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["请填写事项或事件。"].waitForExistence(timeout: 8))
         replace(element(editor, "editor-title"), with: "连续录入第一项", app: app)
         selectCategory(editor, app: app)
+        replace(element(editor, "editor-time"), with: "18:99", app: app)
         element(editor, "editor-save").click()
-        XCTAssertTrue(app.staticTexts["请填写时间（00:00–23:59）。"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts["时间格式应为 HH:mm（00:00–23:59），也可以留空。"].waitForExistence(timeout: 8))
         replace(element(editor, "editor-time"), with: "18:20", app: app)
         let date = element(editor, "editor-date").value as? String
         element(editor, "editor-save-continue").click()
@@ -214,6 +215,25 @@ final class DailyToDoUITests: XCTestCase {
         absent(editor.buttons["editor-save-continue"])
         XCTAssertTrue(event(app.windows["main"], prefix: "calendar-event-", title: "类型键盘选择").waitForExistence(timeout: 8))
         attach(app, "Category keyboard choice and explicit save")
+    }
+    @MainActor func testOptionalTimeSavesAndCalendarKeepsOnlyTheTitle() {
+        let app = launch(); defer { app.terminate() }
+        app.windows["main"].buttons["new-item"].click()
+        let editor = element(app, "main-editor")
+        replace(element(editor, "editor-title"), with: "不填时间的安排", app: app)
+        selectCategory(editor, app: app)
+        value(element(editor, "editor-time"), equals: "")
+        saveAndClose(editor)
+        let row = event(app.windows["main"], prefix: "calendar-event-", title: "不填时间的安排")
+        XCTAssertTrue(row.waitForExistence(timeout: 8))
+        XCTAssertTrue(row.label.hasPrefix("不填时间的安排")); XCTAssertFalse(row.label.contains("00:00"))
+        row.click(); let reopened = element(app, "main-editor")
+        value(element(reopened, "editor-time"), equals: "")
+        replace(element(reopened, "editor-time"), with: "08:30", app: app)
+        saveAndClose(reopened)
+        XCTAssertFalse(row.label.contains("08:30"))
+        row.click(); value(element(element(app, "main-editor"), "editor-time"), equals: "08:30")
+        attach(app, "Optional time and title-only calendar")
     }
     @MainActor func testDesktopCardSurvivesHidingAppAndStillEdits() {
         let app = launch(); defer { app.terminate() }

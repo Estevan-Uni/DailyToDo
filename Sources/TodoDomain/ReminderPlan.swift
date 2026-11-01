@@ -17,7 +17,7 @@ public struct ReminderPlan: Sendable {
             guard task.completedAt == nil, task.deletedAt == nil, !task.isRuleSuppressed,
                   let date = task.reminderAt, date > now else { return nil }
             return ReminderRequest(id: ReminderTarget.task(task.id).requestID, title: task.title,
-                body: "待办 · \(task.scheduledDay) \(task.timeLabel)", date: date)
+                body: "待办 · \(task.scheduledDay)" + (task.hasScheduledTime ? " " + task.timeLabel : ""), date: date)
         }
         let events = events.compactMap { event -> ReminderRequest? in
             guard event.deletedAt == nil, event.archivedAt == nil, let date = event.reminderAt, date > now else { return nil }

@@ -1,16 +1,16 @@
 # PLAN 实现与验收对照
 
-更新：2026-11-01，PLAN V26。当前为可安装、供人工确认的本机预览版，完整对外发布仍有设备和系统验证项。
+更新：2026-11-01，PLAN V27。当前为可安装、供人工确认的本机预览版，完整对外发布仍有设备和系统验证项。
 
 ## 当前实现
 
 | PLAN 内容 | 实现位置 | 验证证据 | 仍需检查 |
 | --- | --- | --- | --- |
-| 日期、类型、规则、实例、快照 | TodoDomain | 47 项领域/预览/提醒联动/时刻状态/本地解析/共享时钟/通知身份测试；DST、闰日、自然周/年边界、有界展开和关联校验 | 真实时区旅行组合 |
-| 本地 SQLite 与串行命令 | TodoPersistence | 8 项 SQLite +32 项 Repository 测试；失败回滚、并发一胜、旧修订拒绝、例外/停止/清理保护 | 更长时间实际使用 |
+| 日期、类型、规则、实例、快照 | TodoDomain | 49 项领域/预览/提醒联动/时刻状态/本地解析/共享时钟/通知身份测试；DST、闰日、自然周/年边界、有界展开和关联校验 | 真实时区旅行组合 |
+| 本地 SQLite 与串行命令 | TodoPersistence | 8 项 SQLite +36 项 Repository 测试；失败回滚、并发一胜、旧修订拒绝、例外/停止/清理保护 | 更长时间实际使用 |
 | 自动顺延 | Repository + RefreshScheduler | 两项真实 SQLite 回归；独立 UI 库启动将 10/30 未完成单次移至 10/31 | 真实运行跨午夜、睡眠后唤醒 |
 | 双入口日历 | MainWindow / ScheduleCalendarView | 原生月网格、七列周历、空白新增、事项修改、关闭右栏、完成原位划线均已观察 | 最低系统、较大字号和 VoiceOver |
-| 草稿与输入 | EditorSession / EditorView / AppCommands | 必填阻止空时间保存；日期带入；保存/继续编辑/放弃；⌘F 展开并聚焦，中文搜索；文本 ⌘Z 撤销输入不改变业务 | 真实中文 IME 组合输入、多入口冲突完整 UI 矩阵 |
+| 草稿与输入 | EditorSession / EditorView / AppCommands | 日期/事项/类型必填，时分选填且非法值被拒绝；日期带入；保存/继续编辑/放弃；⌘F 展开并聚焦，中文搜索；文本 ⌘Z 撤销输入不改变业务 | 真实中文 IME 组合输入、多入口冲突完整 UI 矩阵 |
 | 桌面卡片 | DesktopCard + TodoInteraction | 1:1 左七天/右倒计时；卡片内倒计时新增、完成消失、日期选择和溢出列表可达；8 项滚动状态回归 | 真实触控板惯性、Magic Mouse、跨屏/Space |
 | 窗口生命周期 | TodoDesktopApp | 卡片可隐藏、设置显式显示找回；菜单栏与 Dock 重开代码；关闭/退出草稿保护 | 登录重启、全屏和台前调度 |
 | 通知与登录项 | SystemServices | 默认关闭；全局48预算、30天重复窗口、差量队列、旅行后重算的领域/Repository 测试；失败状态与重试入口 | 用户主动授权后的系统投递和登录重启 |
@@ -20,7 +20,7 @@
 
 ## 测试与性能
 
-`./scripts/test.sh` 当前 **142 项通过，17 个 suite**：Domain47、SQLite8、Repository32、恢复6、滚动状态8、月历布局4、颜色3、位置5、系统服务18、通知交互4、实际AppModel7。8个XCUITest尚未运行，另列于UITests/README.md，不计入142项。测试只创建独立临时 SQLite，不读写正常用户数据库。
+`./scripts/test.sh` 当前 **151 项通过，19 个 suite**：Domain49、SQLite8、Repository36、恢复6、滚动状态8、月历布局4、颜色3、位置5、系统服务18、通知交互4、实际AppModel7、编辑会话3。10项XCUITest未运行，不计入151项。测试只创建独立临时SQLite，不读写正常用户数据库。
 
 `TodoBenchmark` 使用固定时钟和临时数据库运行 Release 基线。优化前后原始输出分别为 `benchmark-before.json` / `benchmark-after.json`；优化是将修订检查与 upsert 的逐条查询改为实体内按 ID 分块读取，没有放宽修订校验。
 
@@ -256,3 +256,5 @@ V24独立通知测试已获用户授权：系统原关闭导致授权请求失�
 V25名称统一为DailyToDo，build 14；142项Swift/17套件、6项构建脚本回归通过。保留原Bundle ID/库路径/模型标识，安装检查新旧运行路径，完整记录见[ENGINEERING_CHECK.md](ENGINEERING_CHECK.md)。历史证据保留当时名称，未完成系统/设备门槛不变。
 
 V26按用户新要求改为默认桌面固定，替换此前普通窗口/严格桌面实验的默认决策。使用公开桌面层级、stationary与非激活面板，独立编辑窗口和隐藏后unhide找回。142项Swift、6项脚本测试通过；9项XCUITest未运行。原生操作证据与工具不能验证的物理桌面点击/全系统矩阵详见[DESKTOP_CARD.md](DESKTOP_CARD.md)，P16/P19及系统矩阵仍保持部分/未验证。
+
+V27用户新要求：时分选填、日期/事项/类型仍必填；周/月事件只显示标题，已有时分保留详情。未设时间明确区别于零点，SQLite V1结构不变；151项Swift/19套件与6项脚本通过，10项XCUITest未运行。原生证据与新边界见[OPTIONAL_TIME.md](OPTIONAL_TIME.md)；本节替代旧时间必填要求，其余系统门槛不变。
