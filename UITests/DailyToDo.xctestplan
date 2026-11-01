@@ -1,0 +1,27 @@
+{
+  "configurations": [
+    {
+      "id": "8BF28C90-44F1-5A7C-8A57-D4498D931BDF",
+      "name": "Local Mac",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {
+    "targetForVariableExpansion": {
+      "containerPath": "container:DailyToDo.xcodeproj",
+      "identifier": "C53B4433F3C8F818EF65D75F",
+      "name": "DailyToDoValidation"
+    }
+  },
+  "testTargets": [
+    {
+      "parallelizable": false,
+      "target": {
+        "containerPath": "container:DailyToDo.xcodeproj",
+        "identifier": "15B2056E498C61FD256F1F29",
+        "name": "DailyToDoUITests"
+      }
+    }
+  ],
+  "version": 1
+}

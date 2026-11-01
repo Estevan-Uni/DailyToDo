@@ -1,0 +1,7 @@
+# TodoDesktopTests
+
+使用Swift Testing直接导入实际AppModel/EditorSession，配合独立临时SQLite、注入时钟/存储位置/离开选择和内存系统客户端。不会启动App主入口、弹NSAlert、请求通知权限或注册登录项；临时库关闭后清理，不读写正常用户库。
+
+当前7项ReminderNavigationTests覆盖旧通知按稳定ID打开已顺延日期、完成历史不复活到卡片、删除/缺失目标不丢草稿、归档倒计时仍可查看、继续编辑/保存失败保留草稿，离开前保存同记录后重新读取新修订，以及显式选择提醒才请求权限、允许不重复请求/拒绝保留草稿。只读打开前后比对真实导出，避免路由意外修改数据。
+
+运行：`./scripts/test.sh --filter ReminderNavigationTests`，或根目录全量test.sh。此为实际模型测试，不能替代原生通知回调、横幅点击、冷启动系统唤起、权限矩阵和图形焦点验收；原生界面重放参数也不等同OS投递。

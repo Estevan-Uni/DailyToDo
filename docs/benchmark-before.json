@@ -1,0 +1,45 @@
+{
+  "architecture" : "arm64",
+  "build" : "release",
+  "date" : "2026-10-31T08:26:59Z",
+  "processors" : 10,
+  "scenarios" : [
+    {
+      "cardMS" : 6.207166676176712,
+      "cardVisible" : 179,
+      "countdowns" : 50,
+      "exportBytes" : 976227,
+      "exportMS" : 51.309458329342306,
+      "farMonthMS" : 109.94362499332055,
+      "farMonthVisible" : 280,
+      "importMS" : 62.053083325736225,
+      "monthFirstMS" : 102.65004166285507,
+      "monthVisible" : 745,
+      "openMS" : 3.5762083280133083,
+      "processPeakMB" : 33.890625,
+      "rules" : 20,
+      "saveMS" : 2.788500001770444,
+      "savedTasksAfterQueries" : 1520,
+      "tasks" : 1000
+    },
+    {
+      "cardMS" : 45.60291666712146,
+      "cardVisible" : 1469,
+      "countdowns" : 200,
+      "exportBytes" : 8110467,
+      "exportMS" : 419.2196249932749,
+      "farMonthMS" : 2010.4379166587023,
+      "farMonthVisible" : 1400,
+      "importMS" : 530.7663333369419,
+      "monthFirstMS" : 1721.5054583357414,
+      "monthVisible" : 6205,
+      "openMS" : 8.813166670734063,
+      "processPeakMB" : 142.078125,
+      "rules" : 100,
+      "saveMS" : 10.397749996627681,
+      "savedTasksAfterQueries" : 12600,
+      "tasks" : 10000
+    }
+  ],
+  "system" : "Version 26.6.2 (Build 25G83)"
+}
