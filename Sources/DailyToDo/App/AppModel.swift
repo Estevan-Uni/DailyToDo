@@ -66,6 +66,20 @@ final class AppModel {
     var themeColorHex = UserDefaults.standard.string(forKey: "themeColorHex") ?? "#4B8E83" {
         didSet { UserDefaults.standard.set(themeColorHex, forKey: "themeColorHex") }
     }
+    private var storedCardBackgroundOpacity: Double = {
+        let value = UserDefaults.standard.object(forKey: "cardBackgroundOpacity") as? Double ?? 0.18
+        return value.isFinite ? min(max(value, 0), 1) : 0.18
+    }()
+    var cardBackgroundOpacity: Double {
+        get { storedCardBackgroundOpacity }
+        set {
+            storedCardBackgroundOpacity = newValue.isFinite ? min(max(newValue, 0), 1) : 0.18
+            UserDefaults.standard.set(storedCardBackgroundOpacity, forKey: "cardBackgroundOpacity")
+        }
+    }
+    var cardThemeTint = UserDefaults.standard.object(forKey: "cardThemeTint") as? Bool ?? true {
+        didSet { UserDefaults.standard.set(cardThemeTint, forKey: "cardThemeTint") }
+    }
     let services: SystemServices
     private var scheduler: RefreshScheduler?
     var showMainAction: (() -> Void)?

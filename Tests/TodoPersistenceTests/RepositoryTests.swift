@@ -85,9 +85,11 @@ import TodoDomain
                 let next = try await repo.agenda(.days(from: d("2026-11-03"), count: 2))
                 #expect(next.items.contains { $0.seriesID == first.seriesID && $0.completedAt == nil && !$0.hasScheduledTime })
             }
-            let before = try await repo.exportData()
+            // Weekdays are a Set: JSON array ordering is not a data mutation.
+            // Compare every decoded field, including revisions and timestamps.
+            let before = try SnapshotCodec.decode(await repo.exportData())
             #expect(try await repo.rolloverUnfinishedSingles() == 0)
-            #expect(try await repo.exportData() == before)
+            #expect(try SnapshotCodec.decode(await repo.exportData()) == before)
         }
     }
     @Test func untimedRolloverPreservesExplicitReminderAndIdentity() async throws {

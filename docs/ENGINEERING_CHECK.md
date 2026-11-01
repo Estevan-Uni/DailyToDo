@@ -1,6 +1,6 @@
 # DailyToDo 工程检查
 
-2026-11-01 · V27 · 0.1.0 build 16。目标仓库：[Estevan-Uni/DailyToDo](https://github.com/Estevan-Uni/DailyToDo)，V25已首次提交源码，本轮更新时分选填与日历标题展示。此报告不等同正式外部分发验收。
+2026-11-01 · V28 · 0.1.0 build 17。目标仓库：[Estevan-Uni/DailyToDo](https://github.com/Estevan-Uni/DailyToDo)，V25已首次提交源码，本轮更新可调半透明磨砂卡片。此报告不等同正式外部分发验收。
 
 ## 名称与兼容
 
@@ -43,3 +43,9 @@ shasum -a 256 -c dist/DailyToDo-macOS-arm64-preview.zip.sha256
 V26默认固定卡片在桌面，其他窗口可以覆盖；可选置顶。App需后台运行，退出后卡片关闭。实现与原生验收边界见[DESKTOP_CARD.md](DESKTOP_CARD.md)。
 
 V27：时分选填，未设时间不等于00:00；周/月日历只显示事件。新增9项回归，151项Swift/19套件通过；10项XCUITest未运行。详细边界见[OPTIONAL_TIME.md](OPTIONAL_TIME.md)。
+
+
+V28：151项Swift/19套件、6项脚本及Xcode工程结构检查通过；10项XCUITest未运行。Release build 17已打包、独立解压严格签名/SHA256核对并安装，正常启动卡片外观控件默认18%/染色开启，未向正常库写测试数据。独立浅/深外观操作证据与未验矩阵见[DESKTOP_CARD.md](DESKTOP_CARD.md)。
+
+
+收尾复跑发现V27无时间重复规则用例以JSON字节比较前后导出，Set<Int>星期数组编码顺序可变，导致偶发失败。改为比较解码后的完整StoreSnapshot（仍包含全部字段、修订和时间），不改变导出格式或业务代码；最终151项/19套件及该用例独立复跑通过。

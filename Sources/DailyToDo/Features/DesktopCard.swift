@@ -176,12 +176,21 @@ struct DesktopCardView: View {
     @State private var boundaryOffset: CGFloat = 0
     @State private var boundaryMessage: String?
     @State private var boundaryTask: Task<Void, Never>?
+    @State private var showAppearance = false
     var body: some View {
         VStack(spacing: 0) {
             HStack {
                 Image(systemName: "rectangle.split.2x1").foregroundStyle(.secondary)
                 Text("DailyToDo").font(.callout.weight(.semibold))
                 Spacer()
+                Button { showAppearance.toggle() } label: { Image(systemName: "slider.horizontal.3") }
+                    .help("卡片外观").accessibilityLabel("卡片外观").accessibilityIdentifier("card-appearance")
+                    .popover(isPresented: $showAppearance) {
+                        VStack(alignment: .leading, spacing: 18) {
+                            Text("卡片外观").font(.headline)
+                            CardAppearanceControls(model: model)
+                        }.padding(22).frame(width: 310).appTheme(model)
+                    }
                 Button { model.showMainAction?() } label: { Image(systemName: "arrow.up.right.square") }.help("打开主窗口").accessibilityIdentifier("card-open-main")
                 Button { model.cardController?.hide() } label: { Image(systemName: "minus") }.help("隐藏卡片，可从菜单栏找回")
             }.buttonStyle(.plain).padding(.horizontal, 22).frame(height: 42).background(DragHandle())
@@ -254,7 +263,9 @@ struct DesktopCardView: View {
         .background {
             if reduceTransparency { Color(nsColor: .windowBackgroundColor) }
             else {
-                FrostedBackground().overlay(Color(nsColor: .windowBackgroundColor).opacity(colorScheme == .dark ? 0.8 : 0.86))
+                FrostedBackground()
+                    .overlay(Color(hex: model.themeColorHex).opacity(model.cardThemeTint ? (colorScheme == .dark ? 0.12 : 0.08) : 0))
+                    .overlay(Color(nsColor: .windowBackgroundColor).opacity(contrast == .increased ? max(0.65, model.cardBackgroundOpacity) : model.cardBackgroundOpacity))
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
@@ -340,7 +351,14 @@ private struct CardDayList: View {
 }
 
 struct FrostedBackground: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSVisualEffectView { let view = NSVisualEffectView(); view.material = .hudWindow; view.blendingMode = .behindWindow; view.state = .active; return view }
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .underWindowBackground
+        view.blendingMode = .behindWindow
+        // Desktop panels remain visually active when another app has focus.
+        view.state = .active
+        return view
+    }
     func updateNSView(_ view: NSVisualEffectView, context: Context) {}
 }
 
